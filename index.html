@@ -302,11 +302,20 @@
       <button id="btnForn">+ Salvar fornecedor</button>
     </div>
     <details class="config">
-      <summary>Seu nome na mensagem</summary>
+      <summary>Dados da mensagem (nome, entrega, pagamento)</summary>
       <div class="campo">
-        <label for="meuNome">Nome que aparece no cabeçalho da lista</label>
+        <label for="meuNome">Seu nome (assinatura no final)</label>
         <input id="meuNome" type="text" placeholder="Opcional" autocomplete="off">
       </div>
+      <div class="campo">
+        <label for="entrega">Endereço de entrega</label>
+        <input id="entrega" type="text" placeholder="Rua, número, apto, bairro" autocomplete="off">
+      </div>
+      <div class="campo">
+        <label for="pagamento">Forma de pagamento</label>
+        <input id="pagamento" type="text" placeholder="Ex.: Cartão de Crédito" autocomplete="off">
+      </div>
+      <p class="dica">Esses dados entram no final de toda lista enviada, das duas abas.</p>
     </details>
   </section>
 </main>
@@ -377,6 +386,8 @@
         delete e.fones;
       }
     }
+    if (typeof e.entrega !== 'string') e.entrega = '';
+    if (typeof e.pagamento !== 'string') e.pagamento = 'Cartão de Crédito';
     return e;
   }
   function salvar() {
@@ -531,12 +542,17 @@
   function montarMensagem() {
     var itens = estado.listas[abaAtiva];
     var data = new Date().toLocaleDateString('pt-BR');
-    var linhas = ['🛒 *LISTA – ' + TITULO[abaAtiva] + '*'];
-    linhas.push(estado.meuNome ? 'Pedido de ' + estado.meuNome + ' — ' + data : data);
+    var linhas = ['Prezados, favor me enviar os seguintes produtos:', ''];
+    linhas.push('🛒 *' + TITULO[abaAtiva] + '* — ' + data);
     linhas.push('');
     itens.forEach(function (i) { linhas.push('• ' + i.n + ' — ' + fmtQtd(i.q, i.u)); });
     linhas.push('');
-    linhas.push('_' + itens.length + (itens.length === 1 ? ' item' : ' itens') + '._ Obrigado!');
+    if (estado.entrega) linhas.push('📍 *Endereço de entrega:* ' + estado.entrega);
+    if (estado.pagamento) linhas.push('💳 *Forma de pagamento:* ' + estado.pagamento);
+    if (estado.entrega || estado.pagamento) linhas.push('');
+    var fim = '_' + itens.length + (itens.length === 1 ? ' item' : ' itens') + '._ Obrigado!';
+    if (estado.meuNome) fim += ' — ' + estado.meuNome;
+    linhas.push(fim);
     return linhas.join('\n');
   }
 
@@ -682,10 +698,14 @@
 
   function carregarConfig() {
     meuNome.value = estado.meuNome || '';
+    $('entrega').value = estado.entrega || '';
+    $('pagamento').value = estado.pagamento || '';
     $('nomeAba').textContent = NOME_ABA[abaAtiva];
     renderForn();
   }
   meuNome.addEventListener('input', function () { estado.meuNome = meuNome.value; salvar(); });
+  $('entrega').addEventListener('input', function () { estado.entrega = this.value; salvar(); });
+  $('pagamento').addEventListener('input', function () { estado.pagamento = this.value; salvar(); });
 
   document.querySelectorAll('.tabs button').forEach(function (b) {
     b.onclick = function () {
