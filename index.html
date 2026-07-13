@@ -188,6 +188,43 @@
   }
   details.config .dica { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
+  ul.forn { list-style: none; margin: 0 0 12px; padding: 0; }
+  ul.forn li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  ul.forn li:last-child { border-bottom: none; }
+  .forn-info { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .forn-info .nome { font-weight: 700; font-size: 15px; }
+  .forn-info .fone { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .form-forn { display: flex; flex-direction: column; gap: 8px; }
+  .form-forn input {
+    border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink);
+    border-radius: 12px; padding: 10px 12px; font-size: 16px;
+  }
+  .form-forn input::placeholder { color: var(--muted); }
+  .form-forn button {
+    appearance: none; border: none; background: var(--accent); color: var(--surface);
+    border-radius: 12px; padding: 12px 16px; font-size: 15px; font-weight: 700;
+    cursor: pointer; min-height: 44px;
+  }
+
+  .veu {
+    position: fixed; inset: 0; background: rgba(15, 18, 12, .45);
+    display: none; align-items: flex-end; justify-content: center; z-index: 20;
+  }
+  .veu.aberto { display: flex; }
+  .escolha {
+    background: var(--surface); border-radius: 18px 18px 0 0; width: 100%;
+    max-width: 480px; padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
+  }
+  .escolha h3 { margin: 0 0 12px; font-size: 15px; color: var(--muted); font-weight: 700; }
+  .escolha button {
+    appearance: none; display: block; width: 100%; text-align: left;
+    border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink);
+    border-radius: 12px; padding: 12px 14px; font-size: 16px; font-weight: 700;
+    cursor: pointer; margin-bottom: 8px;
+  }
+  .escolha button small { display: block; color: var(--muted); font-weight: 600; font-size: 13px; }
+  .escolha button.cancelar { text-align: center; border-style: dashed; color: var(--muted); margin-bottom: 0; }
+
   .acoes {
     position: fixed; bottom: 0; left: 0; right: 0;
     background: linear-gradient(to top, var(--bg) 70%, transparent);
@@ -256,15 +293,18 @@
   </section>
 
   <section class="card">
+    <h2>Fornecedores · <span id="nomeAba">Sacolão</span></h2>
+    <p class="vazio" id="fornVazio">Cadastre quem te atende: o botão verde passa a abrir direto a conversa certa.</p>
+    <ul class="forn" id="fornLista"></ul>
+    <div class="form-forn">
+      <input id="fornNome" type="text" placeholder="Nome — ex.: Sacolão do Zé" autocomplete="off">
+      <input id="fornFone" type="tel" placeholder="WhatsApp com DDD — ex.: (31) 99999-9999" autocomplete="off">
+      <button id="btnForn">+ Salvar fornecedor</button>
+    </div>
     <details class="config">
-      <summary>Configurar envio</summary>
+      <summary>Seu nome na mensagem</summary>
       <div class="campo">
-        <label for="fone">WhatsApp de quem atende (<span id="nomeAba">Sacolão</span>)</label>
-        <input id="fone" type="tel" placeholder="Ex.: (31) 99999-9999" autocomplete="off">
-        <p class="dica">Com o número salvo, o botão abre direto a conversa. Sem número, o WhatsApp pede para escolher o contato.</p>
-      </div>
-      <div class="campo">
-        <label for="meuNome">Seu nome (aparece na mensagem)</label>
+        <label for="meuNome">Nome que aparece no cabeçalho da lista</label>
         <input id="meuNome" type="text" placeholder="Opcional" autocomplete="off">
       </div>
     </details>
@@ -275,6 +315,14 @@
   <div class="linha">
     <button class="btn-zap" id="btnZap">Enviar no WhatsApp</button>
     <button class="btn-sec" id="btnCopiar">Copiar</button>
+  </div>
+</div>
+
+<div class="veu" id="veu">
+  <div class="escolha" role="dialog" aria-modal="true" aria-label="Escolher fornecedor">
+    <h3>Enviar a lista para:</h3>
+    <div id="fornOpcoes"></div>
+    <button class="cancelar" id="btnCancelarEnvio">Cancelar</button>
   </div>
 </div>
 
@@ -314,16 +362,22 @@
   var NOME_ABA = { feira: 'Sacolão', carne: 'Açougue' };
 
   function carregar() {
+    var e = null;
     try {
       var bruto = localStorage.getItem(CHAVE);
-      if (bruto) return JSON.parse(bruto);
-    } catch (e) {}
-    return {
-      listas: { feira: [], carne: [] },
-      extras: { feira: [], carne: [] },
-      fones: { feira: '', carne: '' },
-      meuNome: ''
-    };
+      if (bruto) e = JSON.parse(bruto);
+    } catch (er) {}
+    if (!e) e = { listas: { feira: [], carne: [] }, extras: { feira: [], carne: [] }, meuNome: '' };
+    if (!e.fornecedores) {
+      e.fornecedores = { feira: [], carne: [] };
+      // migra o número único do formato antigo, se existir
+      if (e.fones) {
+        if (e.fones.feira) e.fornecedores.feira.push({ nome: 'Sacolão', fone: e.fones.feira });
+        if (e.fones.carne) e.fornecedores.carne.push({ nome: 'Açougue', fone: e.fones.carne });
+        delete e.fones;
+      }
+    }
+    return e;
   }
   function salvar() {
     try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (e) {}
@@ -486,8 +540,8 @@
     return linhas.join('\n');
   }
 
-  function fonePronto() {
-    var d = (estado.fones[abaAtiva] || '').replace(/\D/g, '');
+  function limparFone(fone) {
+    var d = (fone || '').replace(/\D/g, '');
     if (!d) return '';
     if (d.length <= 11) d = '55' + d;
     return d;
@@ -500,15 +554,41 @@
     toast.t = setTimeout(function () { elToast.classList.remove('show'); }, 2200);
   }
 
-  $('btnZap').onclick = function () {
+  function abrirZap(foneLimpo) {
     var texto = encodeURIComponent(montarMensagem());
-    var fone = fonePronto();
-    var url = fone
-      ? 'https://wa.me/' + fone + '?text=' + texto
+    var url = foneLimpo
+      ? 'https://wa.me/' + foneLimpo + '?text=' + texto
       : 'https://wa.me/?text=' + texto;
     var a = document.createElement('a');
     a.href = url; a.target = '_blank'; a.rel = 'noopener';
     document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  var veu = $('veu');
+  function fecharVeu() { veu.classList.remove('aberto'); }
+  veu.addEventListener('click', function (e) { if (e.target === veu) fecharVeu(); });
+  $('btnCancelarEnvio').onclick = fecharVeu;
+
+  $('btnZap').onclick = function () {
+    var forn = estado.fornecedores[abaAtiva];
+    if (forn.length === 0) return abrirZap('');
+    if (forn.length === 1) return abrirZap(limparFone(forn[0].fone));
+    var caixa = $('fornOpcoes');
+    caixa.innerHTML = '';
+    forn.forEach(function (f) {
+      var b = document.createElement('button');
+      b.textContent = f.nome;
+      var s = document.createElement('small');
+      s.textContent = f.fone;
+      b.appendChild(s);
+      b.onclick = function () { fecharVeu(); abrirZap(limparFone(f.fone)); };
+      caixa.appendChild(b);
+    });
+    var outro = document.createElement('button');
+    outro.textContent = 'Outro contato (escolher no WhatsApp)';
+    outro.onclick = function () { fecharVeu(); abrirZap(''); };
+    caixa.appendChild(outro);
+    veu.classList.add('aberto');
   };
 
   $('btnCopiar').onclick = function () {
@@ -562,13 +642,49 @@
 
   elBusca.addEventListener('input', renderCatalogo);
 
-  var fone = $('fone'), meuNome = $('meuNome');
+  var meuNome = $('meuNome');
+
+  function renderForn() {
+    var lista = estado.fornecedores[abaAtiva];
+    $('fornVazio').style.display = lista.length ? 'none' : 'block';
+    var ul = $('fornLista');
+    ul.innerHTML = '';
+    lista.forEach(function (f) {
+      var li = document.createElement('li');
+      var info = document.createElement('div');
+      info.className = 'forn-info';
+      var n = document.createElement('div'); n.className = 'nome'; n.textContent = f.nome;
+      var t = document.createElement('div'); t.className = 'fone'; t.textContent = f.fone;
+      info.appendChild(n); info.appendChild(t);
+      var x = document.createElement('button');
+      x.className = 'tirar'; x.textContent = '✕';
+      x.setAttribute('aria-label', 'Remover ' + f.nome);
+      x.onclick = function () {
+        if (!confirm('Remover ' + f.nome + '?')) return;
+        estado.fornecedores[abaAtiva] = estado.fornecedores[abaAtiva].filter(function (o) { return o !== f; });
+        salvar(); renderForn();
+      };
+      li.appendChild(info); li.appendChild(x);
+      ul.appendChild(li);
+    });
+  }
+
+  $('btnForn').onclick = function () {
+    var nome = $('fornNome').value.trim();
+    var foneNovo = $('fornFone').value.trim();
+    if (!nome) { toast('Dê um nome ao fornecedor.'); return; }
+    if (foneNovo.replace(/\D/g, '').length < 10) { toast('Confira o WhatsApp: use DDD + número.'); return; }
+    estado.fornecedores[abaAtiva].push({ nome: nome, fone: foneNovo });
+    $('fornNome').value = ''; $('fornFone').value = '';
+    salvar(); renderForn();
+    toast(nome + ' salvo!');
+  };
+
   function carregarConfig() {
-    fone.value = estado.fones[abaAtiva] || '';
     meuNome.value = estado.meuNome || '';
     $('nomeAba').textContent = NOME_ABA[abaAtiva];
+    renderForn();
   }
-  fone.addEventListener('input', function () { estado.fones[abaAtiva] = fone.value; salvar(); });
   meuNome.addEventListener('input', function () { estado.meuNome = meuNome.value; salvar(); });
 
   document.querySelectorAll('.tabs button').forEach(function (b) {
