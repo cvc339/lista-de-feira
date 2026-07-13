@@ -1,0 +1,599 @@
+<title>Lista de Feira</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2E7D46">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #F7F6F1;
+    --surface: #FFFFFF;
+    --surface-2: #EFEEE6;
+    --ink: #22271F;
+    --muted: #6C7264;
+    --line: #E2E1D6;
+    --feira: #2E7D46;
+    --feira-soft: #E3F0E7;
+    --carne: #9C3B34;
+    --carne-soft: #F5E6E3;
+    --zap: #1FAF5A;
+    --zap-ink: #FFFFFF;
+    --danger: #B3452E;
+    --shadow: 0 1px 3px rgba(30, 35, 25, .10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15170F;
+      --surface: #1E211A;
+      --surface-2: #262A21;
+      --ink: #E9EBE3;
+      --muted: #9BA18F;
+      --line: #333828;
+      --feira: #5DBF7E;
+      --feira-soft: #23372A;
+      --carne: #E08578;
+      --carne-soft: #3B2723;
+      --zap: #2ECC71;
+      --zap-ink: #10240F;
+      --danger: #E0846E;
+      --shadow: 0 1px 3px rgba(0, 0, 0, .40);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F7F6F1; --surface: #FFFFFF; --surface-2: #EFEEE6;
+    --ink: #22271F; --muted: #6C7264; --line: #E2E1D6;
+    --feira: #2E7D46; --feira-soft: #E3F0E7;
+    --carne: #9C3B34; --carne-soft: #F5E6E3;
+    --zap: #1FAF5A; --zap-ink: #FFFFFF; --danger: #B3452E;
+    --shadow: 0 1px 3px rgba(30, 35, 25, .10);
+  }
+  :root[data-theme="dark"] {
+    --bg: #15170F; --surface: #1E211A; --surface-2: #262A21;
+    --ink: #E9EBE3; --muted: #9BA18F; --line: #333828;
+    --feira: #5DBF7E; --feira-soft: #23372A;
+    --carne: #E08578; --carne-soft: #3B2723;
+    --zap: #2ECC71; --zap-ink: #10240F; --danger: #E0846E;
+    --shadow: 0 1px 3px rgba(0, 0, 0, .40);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+    -webkit-tap-highlight-color: transparent;
+  }
+  main {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px 14px 120px;
+  }
+  main.tab-feira { --accent: var(--feira); --accent-soft: var(--feira-soft); }
+  main.tab-carne { --accent: var(--carne); --accent-soft: var(--carne-soft); }
+
+  header.app { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+  header.app h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+  header.app .data { color: var(--muted); font-size: 13px; }
+
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .tabs button {
+    appearance: none; border: 1.5px solid var(--line); background: var(--surface);
+    color: var(--ink); border-radius: 12px; padding: 12px 8px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 52px;
+  }
+  .tabs button .badge {
+    background: var(--surface-2); color: var(--muted); border-radius: 999px;
+    font-size: 12px; font-weight: 700; padding: 1px 8px; min-width: 22px; text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .tabs button[aria-selected="true"].t-feira { border-color: var(--feira); background: var(--feira-soft); color: var(--feira); }
+  .tabs button[aria-selected="true"].t-carne { border-color: var(--carne); background: var(--carne-soft); color: var(--carne); }
+  .tabs button[aria-selected="true"] .badge { background: var(--surface); }
+
+  section.card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: var(--shadow); padding: 14px; margin-bottom: 14px;
+  }
+  .card h2 {
+    margin: 0 0 10px; font-size: 12px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .08em;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card h2 .linkbtn {
+    appearance: none; background: none; border: none; color: var(--accent);
+    font-size: 12px; font-weight: 700; cursor: pointer; padding: 4px 0;
+    text-transform: none; letter-spacing: 0;
+  }
+
+  .vazio { color: var(--muted); font-size: 14px; margin: 4px 0; }
+
+  ul.itens { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  ul.itens li {
+    display: flex; align-items: center; gap: 8px; padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  ul.itens li:last-child { border-bottom: none; }
+  .item-nome { flex: 1; font-weight: 600; font-size: 15px; min-width: 0; overflow-wrap: anywhere; }
+  .stepper { display: flex; align-items: center; gap: 2px; }
+  .stepper button {
+    appearance: none; border: 1.5px solid var(--line); background: var(--surface-2);
+    color: var(--ink); width: 38px; height: 38px; border-radius: 10px;
+    font-size: 20px; font-weight: 700; cursor: pointer; line-height: 1;
+  }
+  .stepper .qtd {
+    min-width: 58px; text-align: center; font-weight: 700; font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+  select.unid {
+    appearance: none; border: 1.5px solid var(--line); background: var(--surface-2);
+    color: var(--muted); border-radius: 10px; padding: 8px 6px; font-size: 13px;
+    font-weight: 700; cursor: pointer; text-align: center;
+  }
+  .tirar {
+    appearance: none; border: none; background: none; color: var(--muted);
+    font-size: 18px; cursor: pointer; padding: 8px 2px 8px 6px; line-height: 1;
+  }
+
+  .busca {
+    width: 100%; border: 1.5px solid var(--line); background: var(--surface-2);
+    color: var(--ink); border-radius: 12px; padding: 11px 12px; font-size: 16px;
+    margin-bottom: 12px;
+  }
+  .busca::placeholder { color: var(--muted); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips button {
+    appearance: none; border: 1.5px solid var(--line); background: var(--surface);
+    color: var(--ink); border-radius: 999px; padding: 9px 14px;
+    font-size: 15px; font-weight: 600; cursor: pointer; position: relative;
+    min-height: 42px;
+  }
+  .chips button.na-lista { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .chips button .qtd-chip {
+    display: inline-block; margin-left: 6px; font-size: 12px; font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .chips button .rm {
+    display: inline-block; margin-left: 8px; color: var(--danger); font-weight: 800;
+  }
+
+  .novo { display: flex; gap: 8px; margin-top: 12px; }
+  .novo input {
+    flex: 1; min-width: 0; border: 1.5px solid var(--line); background: var(--surface-2);
+    color: var(--ink); border-radius: 12px; padding: 10px 12px; font-size: 16px;
+  }
+  .novo input::placeholder { color: var(--muted); }
+  .novo button {
+    appearance: none; border: none; background: var(--accent); color: var(--surface);
+    border-radius: 12px; padding: 0 16px; font-size: 15px; font-weight: 700; cursor: pointer;
+    min-height: 44px; white-space: nowrap;
+  }
+
+  details.config { margin-top: 2px; }
+  details.config summary {
+    cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600;
+    padding: 4px 0; list-style: none;
+  }
+  details.config summary::before { content: "⚙ "; }
+  details.config .campo { margin-top: 10px; }
+  details.config label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  details.config input {
+    width: 100%; border: 1.5px solid var(--line); background: var(--surface-2);
+    color: var(--ink); border-radius: 10px; padding: 10px 12px; font-size: 16px;
+  }
+  details.config .dica { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .acoes {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, var(--bg) 70%, transparent);
+    padding: 18px 14px calc(14px + env(safe-area-inset-bottom));
+  }
+  .acoes .linha { max-width: 480px; margin: 0 auto; display: flex; gap: 8px; }
+  .btn-zap {
+    flex: 1; appearance: none; border: none; background: var(--zap); color: var(--zap-ink);
+    border-radius: 14px; padding: 15px 12px; font-size: 17px; font-weight: 800;
+    cursor: pointer; box-shadow: var(--shadow); min-height: 54px;
+  }
+  .btn-zap:disabled { opacity: .45; cursor: default; }
+  .btn-sec {
+    appearance: none; border: 1.5px solid var(--line); background: var(--surface);
+    color: var(--ink); border-radius: 14px; padding: 0 16px; font-size: 15px;
+    font-weight: 700; cursor: pointer; min-height: 54px;
+  }
+  .btn-sec:disabled { opacity: .45; cursor: default; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%) translateY(8px);
+    background: var(--ink); color: var(--bg); border-radius: 999px;
+    padding: 10px 18px; font-size: 14px; font-weight: 600; opacity: 0;
+    pointer-events: none; transition: opacity .2s, transform .2s; z-index: 10;
+    max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent, var(--feira)); outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .toast { transition: none; }
+  }
+</style>
+
+<main id="app" class="tab-feira">
+  <header class="app">
+    <h1>🛒 Lista de Feira</h1>
+    <span class="data" id="dataHoje"></span>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="t-feira" role="tab" aria-selected="true" data-tab="feira">
+      🥬 Sacolão <span class="badge" id="badgeFeira">0</span>
+    </button>
+    <button class="t-carne" role="tab" aria-selected="false" data-tab="carne">
+      🥩 Açougue <span class="badge" id="badgeCarne">0</span>
+    </button>
+  </div>
+
+  <section class="card">
+    <h2>Minha lista <button class="linkbtn" id="btnLimpar">Limpar tudo</button></h2>
+    <p class="vazio" id="vazio">Toque nos produtos abaixo para montar sua lista.</p>
+    <ul class="itens" id="lista"></ul>
+  </section>
+
+  <section class="card">
+    <h2>Produtos <button class="linkbtn" id="btnEditar">Editar</button></h2>
+    <input class="busca" id="busca" type="search" placeholder="Buscar produto..." autocomplete="off">
+    <div class="chips" id="catalogo"></div>
+    <div class="novo">
+      <input id="novoNome" type="text" placeholder="Outro produto..." autocomplete="off">
+      <button id="btnNovo">+ Adicionar</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <details class="config">
+      <summary>Configurar envio</summary>
+      <div class="campo">
+        <label for="fone">WhatsApp de quem atende (<span id="nomeAba">Sacolão</span>)</label>
+        <input id="fone" type="tel" placeholder="Ex.: (31) 99999-9999" autocomplete="off">
+        <p class="dica">Com o número salvo, o botão abre direto a conversa. Sem número, o WhatsApp pede para escolher o contato.</p>
+      </div>
+      <div class="campo">
+        <label for="meuNome">Seu nome (aparece na mensagem)</label>
+        <input id="meuNome" type="text" placeholder="Opcional" autocomplete="off">
+      </div>
+    </details>
+  </section>
+</main>
+
+<div class="acoes">
+  <div class="linha">
+    <button class="btn-zap" id="btnZap">Enviar no WhatsApp</button>
+    <button class="btn-sec" id="btnCopiar">Copiar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var CHAVE = 'listas-feira-v1';
+  var UNIDADES = ['kg', 'g', 'un', 'dz', 'mç', 'bdj', 'pct'];
+  var PASSO = { kg: 0.5, g: 100, dz: 0.5 };
+
+  var PADRAO = {
+    feira: [
+      ['Tomate','kg'],['Cebola','kg'],['Alho','un'],['Batata','kg'],['Batata-doce','kg'],
+      ['Cenoura','kg'],['Beterraba','kg'],['Abobrinha','kg'],['Chuchu','un'],['Pimentão','un'],
+      ['Pepino','un'],['Berinjela','un'],['Repolho','un'],['Alface','un'],['Couve','mç'],
+      ['Cheiro-verde','mç'],['Coentro','mç'],['Rúcula','mç'],['Espinafre','mç'],['Brócolis','un'],
+      ['Couve-flor','un'],['Mandioca','kg'],['Abóbora','kg'],['Milho-verde','un'],['Quiabo','kg'],
+      ['Vagem','kg'],['Inhame','kg'],['Gengibre','g'],['Banana','kg'],['Maçã','kg'],
+      ['Laranja','kg'],['Limão','kg'],['Mamão','un'],['Abacaxi','un'],['Melancia','un'],
+      ['Melão','un'],['Manga','kg'],['Uva','kg'],['Morango','bdj'],['Maracujá','kg'],
+      ['Tangerina','kg'],['Pera','kg'],['Abacate','un'],['Ovos','dz']
+    ],
+    carne: [
+      ['Carne moída','kg'],['Patinho','kg'],['Acém','kg'],['Músculo','kg'],['Coxão-mole','kg'],
+      ['Coxão-duro','kg'],['Alcatra','kg'],['Contrafilé','kg'],['Picanha','kg'],['Filé-mignon','kg'],
+      ['Maminha','kg'],['Fraldinha','kg'],['Cupim','kg'],['Costela bovina','kg'],['Fígado','kg'],
+      ['Frango inteiro','un'],['Peito de frango','kg'],['Filé de frango','kg'],['Coxa e sobrecoxa','kg'],
+      ['Asa de frango','kg'],['Coração de frango','kg'],['Linguiça toscana','kg'],['Linguiça calabresa','kg'],
+      ['Bacon','g'],['Lombo suíno','kg'],['Pernil','kg'],['Costelinha suína','kg'],['Bisteca suína','kg'],
+      ['Carne de sol','kg'],['Salsicha','kg'],['Filé de tilápia','kg'],['Hambúrguer','pct']
+    ]
+  };
+  var TITULO = { feira: 'SACOLÃO', carne: 'AÇOUGUE' };
+  var NOME_ABA = { feira: 'Sacolão', carne: 'Açougue' };
+
+  function carregar() {
+    try {
+      var bruto = localStorage.getItem(CHAVE);
+      if (bruto) return JSON.parse(bruto);
+    } catch (e) {}
+    return {
+      listas: { feira: [], carne: [] },
+      extras: { feira: [], carne: [] },
+      fones: { feira: '', carne: '' },
+      meuNome: ''
+    };
+  }
+  function salvar() {
+    try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (e) {}
+  }
+
+  var estado = carregar();
+  var abaAtiva = 'feira';
+  var modoEditar = false;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var app = $('app'), elLista = $('lista'), elCatalogo = $('catalogo'), elVazio = $('vazio');
+  var elBusca = $('busca'), elToast = $('toast');
+
+  $('dataHoje').textContent = new Date().toLocaleDateString('pt-BR', {
+    weekday: 'short', day: '2-digit', month: '2-digit'
+  });
+
+  function catalogoDe(aba) {
+    var base = PADRAO[aba].map(function (p) { return { n: p[0], u: p[1], extra: false }; });
+    var extras = estado.extras[aba].map(function (p) { return { n: p.n, u: p.u, extra: true }; });
+    return base.concat(extras);
+  }
+  function itemDaLista(aba, nome) {
+    var l = estado.listas[aba];
+    for (var i = 0; i < l.length; i++) if (l[i].n === nome) return l[i];
+    return null;
+  }
+  function passo(u) { return PASSO[u] || 1; }
+
+  function fmtQtd(q, u) {
+    var s = (Math.round(q * 100) / 100).toString().replace('.', ',');
+    return s + ' ' + u;
+  }
+
+  function renderLista() {
+    var itens = estado.listas[abaAtiva];
+    elVazio.style.display = itens.length ? 'none' : 'block';
+    elLista.innerHTML = '';
+    itens.forEach(function (item) {
+      var li = document.createElement('li');
+
+      var nome = document.createElement('span');
+      nome.className = 'item-nome';
+      nome.textContent = item.n;
+
+      var st = document.createElement('div');
+      st.className = 'stepper';
+      var menos = document.createElement('button');
+      menos.textContent = '−';
+      menos.setAttribute('aria-label', 'Diminuir ' + item.n);
+      menos.onclick = function () {
+        item.q = Math.round((item.q - passo(item.u)) * 100) / 100;
+        if (item.q <= 0) remover(item.n); else { salvar(); render(); }
+      };
+      var qtd = document.createElement('span');
+      qtd.className = 'qtd';
+      qtd.textContent = fmtQtd(item.q, item.u);
+      var mais = document.createElement('button');
+      mais.textContent = '+';
+      mais.setAttribute('aria-label', 'Aumentar ' + item.n);
+      mais.onclick = function () {
+        item.q = Math.round((item.q + passo(item.u)) * 100) / 100;
+        salvar(); render();
+      };
+      st.appendChild(menos); st.appendChild(qtd); st.appendChild(mais);
+
+      var sel = document.createElement('select');
+      sel.className = 'unid';
+      sel.setAttribute('aria-label', 'Unidade de ' + item.n);
+      UNIDADES.forEach(function (u) {
+        var op = document.createElement('option');
+        op.value = u; op.textContent = u;
+        if (u === item.u) op.selected = true;
+        sel.appendChild(op);
+      });
+      sel.onchange = function () {
+        item.u = sel.value;
+        item.q = passo(item.u);
+        salvar(); render();
+      };
+
+      var x = document.createElement('button');
+      x.className = 'tirar';
+      x.textContent = '✕';
+      x.setAttribute('aria-label', 'Tirar ' + item.n + ' da lista');
+      x.onclick = function () { remover(item.n); };
+
+      li.appendChild(nome); li.appendChild(st); li.appendChild(sel); li.appendChild(x);
+      elLista.appendChild(li);
+    });
+  }
+
+  function renderCatalogo() {
+    var filtro = elBusca.value.trim().toLowerCase();
+    elCatalogo.innerHTML = '';
+    catalogoDe(abaAtiva).forEach(function (p) {
+      if (filtro && p.n.toLowerCase().indexOf(filtro) === -1) return;
+      var b = document.createElement('button');
+      var na = itemDaLista(abaAtiva, p.n);
+      if (na) b.className = 'na-lista';
+      b.textContent = p.n;
+      if (na) {
+        var q = document.createElement('span');
+        q.className = 'qtd-chip';
+        q.textContent = fmtQtd(na.q, na.u);
+        b.appendChild(q);
+      }
+      if (modoEditar && p.extra) {
+        var rm = document.createElement('span');
+        rm.className = 'rm';
+        rm.textContent = '✕';
+        b.appendChild(rm);
+      }
+      b.onclick = function () {
+        if (modoEditar && p.extra) {
+          estado.extras[abaAtiva] = estado.extras[abaAtiva].filter(function (e) { return e.n !== p.n; });
+          remover(p.n);
+          return;
+        }
+        var item = itemDaLista(abaAtiva, p.n);
+        if (item) {
+          item.q = Math.round((item.q + passo(item.u)) * 100) / 100;
+        } else {
+          estado.listas[abaAtiva].push({ n: p.n, u: p.u, q: passo(p.u) });
+        }
+        salvar(); render();
+      };
+      elCatalogo.appendChild(b);
+    });
+  }
+
+  function renderBadges() {
+    $('badgeFeira').textContent = estado.listas.feira.length;
+    $('badgeCarne').textContent = estado.listas.carne.length;
+    var tem = estado.listas[abaAtiva].length > 0;
+    $('btnZap').disabled = !tem;
+    $('btnCopiar').disabled = !tem;
+  }
+
+  function render() {
+    renderLista();
+    renderCatalogo();
+    renderBadges();
+  }
+
+  function remover(nome) {
+    estado.listas[abaAtiva] = estado.listas[abaAtiva].filter(function (i) { return i.n !== nome; });
+    salvar(); render();
+  }
+
+  function montarMensagem() {
+    var itens = estado.listas[abaAtiva];
+    var data = new Date().toLocaleDateString('pt-BR');
+    var linhas = ['🛒 *LISTA – ' + TITULO[abaAtiva] + '*'];
+    linhas.push(estado.meuNome ? 'Pedido de ' + estado.meuNome + ' — ' + data : data);
+    linhas.push('');
+    itens.forEach(function (i) { linhas.push('• ' + i.n + ' — ' + fmtQtd(i.q, i.u)); });
+    linhas.push('');
+    linhas.push('_' + itens.length + (itens.length === 1 ? ' item' : ' itens') + '._ Obrigado!');
+    return linhas.join('\n');
+  }
+
+  function fonePronto() {
+    var d = (estado.fones[abaAtiva] || '').replace(/\D/g, '');
+    if (!d) return '';
+    if (d.length <= 11) d = '55' + d;
+    return d;
+  }
+
+  function toast(msg) {
+    elToast.textContent = msg;
+    elToast.classList.add('show');
+    clearTimeout(toast.t);
+    toast.t = setTimeout(function () { elToast.classList.remove('show'); }, 2200);
+  }
+
+  $('btnZap').onclick = function () {
+    var texto = encodeURIComponent(montarMensagem());
+    var fone = fonePronto();
+    var url = fone
+      ? 'https://wa.me/' + fone + '?text=' + texto
+      : 'https://wa.me/?text=' + texto;
+    var a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+
+  $('btnCopiar').onclick = function () {
+    var texto = montarMensagem();
+    function ok() { toast('Lista copiada! É só colar no WhatsApp.'); }
+    function falha() {
+      var ta = document.createElement('textarea');
+      ta.value = texto; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { toast('Não consegui copiar.'); }
+      ta.remove();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texto).then(ok, falha);
+    } else falha();
+  };
+
+  $('btnLimpar').onclick = function () {
+    if (!estado.listas[abaAtiva].length) return;
+    if (confirm('Limpar toda a lista de ' + NOME_ABA[abaAtiva] + '?')) {
+      estado.listas[abaAtiva] = [];
+      salvar(); render();
+    }
+  };
+
+  $('btnEditar').onclick = function () {
+    modoEditar = !modoEditar;
+    $('btnEditar').textContent = modoEditar ? 'Pronto' : 'Editar';
+    renderCatalogo();
+  };
+
+  $('btnNovo').onclick = function () {
+    var nome = $('novoNome').value.trim();
+    if (!nome) return;
+    var existe = catalogoDe(abaAtiva).some(function (p) {
+      return p.n.toLowerCase() === nome.toLowerCase();
+    });
+    if (!existe) {
+      estado.extras[abaAtiva].push({ n: nome, u: abaAtiva === 'carne' ? 'kg' : 'un' });
+    }
+    var item = itemDaLista(abaAtiva, nome);
+    if (!item) {
+      var cat = catalogoDe(abaAtiva).filter(function (p) { return p.n.toLowerCase() === nome.toLowerCase(); })[0];
+      estado.listas[abaAtiva].push({ n: cat.n, u: cat.u, q: passo(cat.u) });
+    }
+    $('novoNome').value = '';
+    salvar(); render();
+  };
+  $('novoNome').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') $('btnNovo').click();
+  });
+
+  elBusca.addEventListener('input', renderCatalogo);
+
+  var fone = $('fone'), meuNome = $('meuNome');
+  function carregarConfig() {
+    fone.value = estado.fones[abaAtiva] || '';
+    meuNome.value = estado.meuNome || '';
+    $('nomeAba').textContent = NOME_ABA[abaAtiva];
+  }
+  fone.addEventListener('input', function () { estado.fones[abaAtiva] = fone.value; salvar(); });
+  meuNome.addEventListener('input', function () { estado.meuNome = meuNome.value; salvar(); });
+
+  document.querySelectorAll('.tabs button').forEach(function (b) {
+    b.onclick = function () {
+      abaAtiva = b.dataset.tab;
+      modoEditar = false;
+      $('btnEditar').textContent = 'Editar';
+      elBusca.value = '';
+      document.querySelectorAll('.tabs button').forEach(function (o) {
+        o.setAttribute('aria-selected', o === b ? 'true' : 'false');
+      });
+      app.className = abaAtiva === 'feira' ? 'tab-feira' : 'tab-carne';
+      carregarConfig();
+      render();
+    };
+  });
+
+  carregarConfig();
+  render();
+
+  // PWA: registra o service worker quando servido por um site (falha silenciosa fora dele)
+  try {
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    }
+  } catch (e) {}
+})();
+</script>
