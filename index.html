@@ -550,7 +550,7 @@
     if (estado.entrega) linhas.push('📍 *Endereço de entrega:* ' + estado.entrega);
     if (estado.pagamento) linhas.push('💳 *Forma de pagamento:* ' + estado.pagamento);
     if (estado.entrega || estado.pagamento) linhas.push('');
-    var fim = '_' + itens.length + (itens.length === 1 ? ' item' : ' itens') + '._ Obrigado!';
+    var fim = 'Obrigado!';
     if (estado.meuNome) fim += ' — ' + estado.meuNome;
     linhas.push(fim);
     return linhas.join('\n');
